@@ -6,7 +6,7 @@ const { login } = require("./login");
 
 ///CREATE USER
 // /api/user/register
-router.post("/register", register);
+router.post("/register", register); 
 
 ///USER LOGIN
 // /api/user/login
