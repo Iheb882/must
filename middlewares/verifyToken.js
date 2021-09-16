@@ -9,7 +9,7 @@ module.exports = async (req, res, next) => {
   }
   try {
     const verified = await jwt.verify(token, secretToken);
-    console.log(verified);
+    // console.log(verified);
     req.user = verified;
     // req.token = token;
     next();

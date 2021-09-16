@@ -4,20 +4,20 @@ module.exports = async (req, res) => {
   try {
     let { id } = req.params;
     let { title, content } = req.body;
-    let photoUrl = "/uploads/post.png";
-    console.log("file", req.file);
+    let imageUrl = "/uploads/post.png";
     if (req.file) {
-      photoUrl = `${req.protocol}://${req.get("host")}/uploads/${
+      imageUrl = `${req.protocol}://${req.get("host")}/uploads/${
         req.file.filename
       }`;
     }
-    await Post.findByIdAndUpdate(id, {
-      $set: { title, content, image: photoUrl },
-    });
-    let updatedPost = await Post.findById(id);
+    let updatedPost = await Post.findByIdAndUpdate(
+      id,
+      { $set: { title, content } },
+      { new: true }
+    );
     res.status(201).json({
       status: true,
-      message: "Post updated successfully ! ",
+      message: "Post updated successfully",
       data: updatedPost,
     });
   } catch (error) {

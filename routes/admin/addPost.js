@@ -3,10 +3,12 @@ const Post = require("../../models/forum/post");
 module.exports = async (req, res) => {
   try {
     let { title, content } = req.body;
-    let photoUrl = `${req.protocol}://${req.get("host")}/uploads/${
-      req.file.filename
-    }`;
-
+    let photoUrl = "/uploads/post.png";
+    if (req.file) {
+      photoUrl = `${req.protocol}://${req.get("host")}/uploads/${
+        req.file.filename
+      }`;
+    }
     const newPost = new Post({
       title,
       content,
