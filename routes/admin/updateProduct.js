@@ -2,7 +2,7 @@ const Product = require("../../models/product/product");
 
 module.exports = async (req, res) => {
   try {
-    let { id } = req.params;
+    let { id } = req.header("data");
     let { category, productName, material, price, available, waterProof } =
       req.body;
     let imageUrl = "/uploads/img.png";

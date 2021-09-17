@@ -2,7 +2,7 @@ const Post = require("../../models/forum/post");
 
 module.exports = async (req, res) => {
   try {
-    let { id } = req.params;
+    let { id } = req.header("data");
     let { title, content } = req.body;
     let imageUrl = "/uploads/post.png";
     if (req.file) {
