@@ -18,7 +18,6 @@ exports.login = async (req, res) => {
     }
     //************************DECRYPT PASSWORD */
     const same = await bcrypt.compare(password, user.password);
-    console.log("same", same);
     if (!same) {
         return res.status(401).json({
             status: false,

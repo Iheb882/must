@@ -15,8 +15,7 @@ const User = require("../../models/user/user");
 const adminAccess = require("../../middlewares/adminAccess");
 // Ordered LIST
 const OrderedProducts = require("../../models/orderedproduct/orderedPrd");
-const { json } = require("express");
-
+const Comment = require("../../models/comments/comments");
 //admin add product
 // /api/admin/addProduct
 router.post(
@@ -41,8 +40,8 @@ router.put(
 // /api/admin/deleteProduct
 router.delete("/deleteProduct/:id", verify, adminAccess, async (req, res) => {
   try {
-    let { id } = req.header("data");
-    let deleteProduct = await Product.findByIdAndRemove(id);
+    let id = req.header("data");
+    let deleteProduct = await Product.findByIdAndRemove(id, { new: true });
     res
       .status(201)
       .json({ message: "Product deleted successfully ! ", deleteProduct });
@@ -68,11 +67,11 @@ router.put("/updatePost/:id", verify, adminAccess, updatePost); // "photo" is th
 // /api/admin/deletePost
 router.delete("/deletePost/:id", verify, adminAccess, async (req, res) => {
   try {
-    let { id } = req.header("data");
-    let deletedPost = await Post.findByIdAndRemove(id);
+    let id = req.header("data");
+    let deletedPost = await Post.findByIdAndRemove(id, { new: true });
     res
       .status(201)
-      .json({ message: "Post deleted successfully ! ", deletedPost });
+      .json({ message: "Post deleted successfully ! ", data: deletedPost });
   } catch (error) {
     res.status(401).json({ message: error });
   }
@@ -82,7 +81,7 @@ router.delete("/deletePost/:id", verify, adminAccess, async (req, res) => {
 // /api/admin/banUser
 router.put("/banUser/:id", verify, adminAccess, async (req, res) => {
   try {
-    let { id } = req.header("data");
+    let id = req.header("data");
     let bannedUser = await User.findByIdAndUpdate(
       id,
       { $set: { isUser: false } },
@@ -103,7 +102,7 @@ router.put("/banUser/:id", verify, adminAccess, async (req, res) => {
 // /api/admin/addAdmin
 router.put("/addAdmin/:id", verify, adminAccess, async (req, res) => {
   try {
-    let { id } = req.header("data");
+    let id = req.header("data");
     let newAdmin = await User.findByIdAndUpdate(
       id,
       { $set: { isAdmin: true } },
@@ -219,6 +218,44 @@ router.delete("/deleteOrder/:id", verify, adminAccess, async (req, res) => {
       status: true,
       message: "Order deleted ! ",
       data: deletedOrder,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(401).json({ message: error });
+  }
+});
+
+//ADMIN ADD COMMENT
+// /api/admin/comment
+router.post("/comment/:id", verify, adminAccess, async (req, res) => {
+  try {
+    let { text } = req.body;
+    let userId = req.params;
+    let postId = req.header("postId");
+    const newPost = new Comment({
+      userId,
+      postId,
+      userName: "admin",
+      text,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(401).json({ message: error });
+  }
+});
+
+//Admin DELETE COMMENT
+// /api/admin/deleteComment
+router.post("/deleteComment/:id", verify, adminAccess, async (req, res) => {
+  try {
+    let { commentId } = req.header("commentId");
+    let deletedComment = await Comment.findByIdAndDelete(commentId, {
+      new: true,
+    });
+    res.status(201).json({
+      status: true,
+      message: "comment was updated successfully",
+      data: deletedComment,
     });
   } catch (error) {
     console.log(error);

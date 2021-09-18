@@ -6,42 +6,35 @@ const Schema = mongoose.Schema;
 
 const OrderedPrdSchema = new Schema(
   {
-    productId: {
-      type: Schema.Types.ObjectId,
-    },
-    category: {
-      type: "string",
-      required: true,
-    },
-    name: {
-      type: "string",
-      required: true,
-    },
-    material: {
-      type: "string",
-      required: true,
-    },
-    price: {
-      type: "number",
-      required: true,
-    },
-    available: {
-      type: Boolean,
-      required: true,
-    },
-    waterproof: {
-      type: Boolean,
-      required: true,
-    },
-    image: {
-      type: "string",
-      default: "/uploads/img.png",
-    },
-    quantity: {
-      type: "number",
-      required: true,
-      default: 1,
-    },
+    // category: {
+    //   type: "string",
+    //   required: true,
+    // },
+    // productName: {
+    //   type: "string",
+    //   required: true,
+    // },
+    // material: {
+    //   type: "string",
+    //   required: true,
+    // },
+    // price: {
+    //   type: "number",
+    //   required: true,
+    // },
+    // available: {
+    //   type: Boolean,
+    //   required: true,
+    // },
+    // waterProof: {
+    //   type: Boolean,
+    //   required: true,
+    // },
+    // image: {
+    //   type: "string",
+    //   default: "/uploads/img.png",
+    // },
+    chart: [],
     user: {
       // userID
       type: Schema.Types.ObjectId,
@@ -72,7 +65,6 @@ const OrderedPrdSchema = new Schema(
     },
     total: {
       type: "number",
-      required: true,
     },
   },
   { timestamps: true } //date creation

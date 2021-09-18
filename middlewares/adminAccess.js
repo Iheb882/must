@@ -4,7 +4,6 @@ module.exports = async (req, res, next) => {
   try {
     let { id } = req.params;
     let user = await User.findById(id);
-    console.log(user);
     if (user.isAdmin) {
       next();
     } else {

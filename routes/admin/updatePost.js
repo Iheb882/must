@@ -2,7 +2,7 @@ const Post = require("../../models/forum/post");
 
 module.exports = async (req, res) => {
   try {
-    let { id } = req.header("data");
+    let id = req.header("data");
     let { title, content } = req.body;
     let imageUrl = "/uploads/post.png";
     if (req.file) {
@@ -22,6 +22,6 @@ module.exports = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    res.status(401).json({ message: error });
+    res.status(401).json({ error });
   }
 };
