@@ -10,6 +10,7 @@ const verify = require("../../middlewares/verifyToken");
 const userAccess = require("../../middlewares/userAccess");
 const OrderedPrd = require("../../models/orderedproduct/orderedPrd");
 const Comment = require("../../models/comments/comments");
+const ObjectId = require("mongodb").ObjectId;
 ///CREATE USER
 // /api/user/register
 router.post("/register", register);
@@ -126,24 +127,30 @@ router.post("/createChart/:id", verify, userAccess, async (req, res) => {
     let _id = req.header("prdId");
     console.log("id", _id);
     const product = await Product.findById({ _id });
-    const newChart = new Chart({
-      productId: _id,
-      userId: id,
-      category: product.category,
-      productName: product.productName,
-      material: product.material,
-      price: product.price,
-      available: product.available,
-      waterProof: product.waterProof,
-      image: product.image,
-      quantity,
-    });
-    const chart = await newChart.save(); // to show savedPost in response
-    res.status(201).json({
-      status: true,
-      message: "product added to chart successfully",
-      data: chart,
-    });
+    const oldChart = await Chart.find({ productId: _id });
+    console.log("oldChart", oldChart);
+    if (!oldChart[0]) {
+      const newChart = new Chart({
+        productId: _id,
+        userId: id,
+        category: product.category,
+        productName: product.productName,
+        material: product.material,
+        price: product.price,
+        available: product.available,
+        waterProof: product.waterProof,
+        image: product.image,
+        quantity,
+      });
+      const chart = await newChart.save(); // to show savedPost in response
+      res.status(201).json({
+        status: true,
+        message: "product added to chart successfully",
+        data: chart,
+      });
+    } else {
+      res.status(401).json({ message: "product already exists" });
+    }
   } catch (error) {
     console.log(error);
     res.status(401).json({ message: error });
@@ -158,27 +165,38 @@ router.post("/create/:id", verify, userAccess, async (req, res) => {
     let { id } = req.params;
     let _id = req.header("prdId");
     const chart = await Chart.find({ userId: id });
-    console.log("chart", chart);
-    const newOrder = new OrderedPrd({
-      // category: chart.category,
-      // productName: chart.productName,
-      // material: chart.material,
-      // available: chart.available,
-      // waterProof: chart.waterProof,
-      // price: chart.price,
-      // image: chart.image,
-      user: id,
-      userFirstName,
-      userLastName,
-      location,
-      city,
-      phone,
-      // total: chart.quantity * chart.price,
-    });
-    const Order = await newOrder.save(); // to show savedPost in response
-    res
-      .status(201)
-      .json({ status: true, message: "order sent successfully", data: Order });
+    // console.log("chart", chart);
+    const userOrder = await OrderedPrd.find({ user: id });
+    // console.log("userOrder", userOrder);
+
+    if (userOrder[0]._id) {
+      let addOrder = await OrderedPrd.findOneAndUpdate({ user: id }, { chart });
+      res.status(201).json({ data: addOrder });
+    } else {
+      const newOrder = new OrderedPrd({
+        // category: chart.category,
+        // productName: chart.productName,
+        // material: chart.material,
+        // available: chart.available,
+        // waterProof: chart.waterProof,
+        // price: chart.price,
+        // image: chart.image,
+        chart,
+        user: id,
+        userFirstName,
+        userLastName,
+        location,
+        city,
+        phone,
+        // total: chart.quantity * chart.price,
+      });
+      const Order = await newOrder.save(); // to show savedPost in response
+      res.status(201).json({
+        status: true,
+        message: "order sent successfully",
+        data: Order,
+      });
+    }
   } catch (error) {
     console.log(error);
     res.status(401).json({ message: error });
@@ -190,13 +208,20 @@ router.post("/create/:id", verify, userAccess, async (req, res) => {
 router.post("/comment/:id", verify, userAccess, async (req, res) => {
   try {
     let { userName, text } = req.body;
-    let userId = req.params;
+    let { id } = req.params;
     let postId = req.header("postId");
-    const newPost = new Comment({
-      userId,
+    const newComment = new Comment({
+      userId: id,
       postId,
       userName,
       text,
+    });
+    // const userComment = await newComment.save(); // to show savedPost in response
+    await Post.findByIdAndUpdate(postId, { $push: { comment: newComment } });
+    res.status(201).json({
+      status: true,
+      message: "comment added successfully",
+      data: newComment,
     });
   } catch (error) {
     console.log(error);
@@ -205,16 +230,16 @@ router.post("/comment/:id", verify, userAccess, async (req, res) => {
 });
 //USER UPDATE COMMENT
 // /api/user/updateComment
-router.post("/updateComment/:id", verify, userAccess, async (req, res) => {
+router.put("/updateComment/:id", verify, userAccess, async (req, res) => {
   try {
-    let { text } = req.body;
-    let { commentId } = req.header("commentId");
-    let updatedComment = await Comment.findByIdAndUpdate(
-      commentId,
-      {
-        $set: { text },
-      },
-      { new: true }
+    let { newText } = req.body;
+    let { id } = req.params;
+    var o_id = new ObjectId(id);
+    console.log("id", id);
+    let _id = req.header("postId");
+    let updatedComment = await Post.updateOne(
+      { _id, "comment.userId": o_id },
+      { $set: { "comment.$.text": newText } }
     );
     res.status(201).json({
       status: true,
@@ -228,15 +253,19 @@ router.post("/updateComment/:id", verify, userAccess, async (req, res) => {
 });
 //USER DELETE COMMENT
 // /api/user/deleteComment
-router.post("/deleteComment/:id", verify, userAccess, async (req, res) => {
+router.delete("/deleteComment/:id", verify, userAccess, async (req, res) => {
   try {
-    let { commentId } = req.header("commentId");
-    let deletedComment = await Comment.findByIdAndDelete(commentId, {
-      new: true,
-    });
+    let { id } = req.params;
+    var o_id = new ObjectId(id);
+    console.log("id", id);
+    let _id = req.header("postId");
+    let deletedComment = await Post.delete(
+      { _id, "comment.userId": o_id }
+      //  { $set: { "comment.$.text": newText } }
+    );
     res.status(201).json({
       status: true,
-      message: "comment was updated successfully",
+      message: "comment was deleted successfully",
       data: deletedComment,
     });
   } catch (error) {

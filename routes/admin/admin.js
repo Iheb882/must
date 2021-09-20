@@ -16,6 +16,9 @@ const adminAccess = require("../../middlewares/adminAccess");
 // Ordered LIST
 const OrderedProducts = require("../../models/orderedproduct/orderedPrd");
 const Comment = require("../../models/comments/comments");
+///
+const ObjectId = require("mongodb").ObjectId;
+
 //admin add product
 // /api/admin/addProduct
 router.post(
@@ -230,13 +233,45 @@ router.delete("/deleteOrder/:id", verify, adminAccess, async (req, res) => {
 router.post("/comment/:id", verify, adminAccess, async (req, res) => {
   try {
     let { text } = req.body;
-    let userId = req.params;
+    let { id } = req.params;
     let postId = req.header("postId");
-    const newPost = new Comment({
-      userId,
+    const newAdminComment = new Comment({
+      userId: id,
       postId,
       userName: "admin",
       text,
+    });
+    // const adminComment = await newAdminComment.save(); // to show savedPost in response
+    await Post.findByIdAndUpdate(postId, {
+      $push: { comment: newAdminComment },
+    });
+    res.status(201).json({
+      status: true,
+      message: "comment was added",
+      data: newAdminComment,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(401).json({ message: error });
+  }
+});
+
+//ADMIN UPDATE COMMENT
+// /api/admin/updateComment
+router.put("/updateComment/:id", verify, adminAccess, async (req, res) => {
+  try {
+    let { newText } = req.body;
+    let { id } = req.params;
+    var o_id = new ObjectId(id);
+    let _id = req.header("postId");
+    let updatedComment = await Post.updateOne(
+      { _id, "comment.userId": o_id },
+      { $set: { "comment.$.text": newText } }
+    );
+    res.status(201).json({
+      status: true,
+      message: "comment was updated successfully",
+      data: updatedComment,
     });
   } catch (error) {
     console.log(error);

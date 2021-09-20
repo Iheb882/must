@@ -17,6 +17,7 @@ const PostSchema = new Schema(
       type: "string",
       default: "/uploads/post.png",
     },
+    comment: [],
   },
   { timestamps: true } //date creation user
 );
