@@ -156,6 +156,41 @@ router.post("/createChart/:id", verify, userAccess, async (req, res) => {
     res.status(401).json({ message: error });
   }
 });
+
+//DELETE PRODUCT FROM CHART
+// /api/user/removeProduct
+router.delete("/removeProduct/:id", verify, userAccess, async (req, res) => {
+  try {
+    let id = req.header("id");
+    // console.log("id", id);
+    let removedProduct = await Chart.findByIdAndRemove(id);
+    res.status(201).json({
+      status: true,
+      message: "Product was removed from your chart successfully",
+      data: removedProduct,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(401).json({ message: error });
+  }
+});
+// USER GET CHART
+// /api/user/myChart
+router.get("/myChart/:id", verify, userAccess, async (req, res) => {
+    try {
+        let { id } = req.params;
+        const myChart = await Chart.find({ user: id }); // to show savedPost in response
+        res.status(201).json({
+            status: true,
+            message: "YOUR CHART",
+            data: myChart,
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(401).json({ message: error });
+    }
+});
+
 // Create Order
 // /api/user/create
 
@@ -251,17 +286,18 @@ router.put("/updateComment/:id", verify, userAccess, async (req, res) => {
     res.status(401).json({ message: error });
   }
 });
+
 //USER DELETE COMMENT
 // /api/user/deleteComment
-router.delete("/deleteComment/:id", verify, userAccess, async (req, res) => {
+router.put("/deleteComment/:id", verify, userAccess, async (req, res) => {
   try {
-    let { id } = req.params;
-    var o_id = new ObjectId(id);
-    console.log("id", id);
     let _id = req.header("postId");
-    let deletedComment = await Post.delete(
-      { _id, "comment.userId": o_id }
-      //  { $set: { "comment.$.text": newText } }
+    let commId = req.header("commentId");
+    var post_id = new ObjectId(_id);
+    var o_comm_id = new ObjectId(commId);
+    let deletedComment = await Post.updateOne(
+      { _id: post_id },
+      { $pull: { comment: { _id: o_comm_id } } }
     );
     res.status(201).json({
       status: true,

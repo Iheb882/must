@@ -100,6 +100,26 @@ router.put("/banUser/:id", verify, adminAccess, async (req, res) => {
     console.log(error);
   }
 });
+//UNBAN USER
+// /api/admin/unbanUser
+router.put("/unbanUser/:id", verify, adminAccess, async (req, res) => {
+  try {
+    let id = req.header("data");
+    let bannedUser = await User.findByIdAndUpdate(
+      id,
+      { $set: { isUser: true } },
+      { new: true }
+    );
+    res.status(201).json({
+      status: true,
+      message: "User Banned successfully",
+      data: bannedUser,
+    });
+  } catch (error) {
+    res.status(404).json({ message: error });
+    console.log(error);
+  }
+});
 
 //Add Second Admin
 // /api/admin/addAdmin
@@ -121,8 +141,28 @@ router.put("/addAdmin/:id", verify, adminAccess, async (req, res) => {
     console.log(error);
   }
 });
+//Remove Admin
+// /api/admin/removeAdmin
+router.put("/removeAdmin/:id", verify, adminAccess, async (req, res) => {
+  try {
+    let id = req.header("data");
+    let newAdmin = await User.findByIdAndUpdate(
+      id,
+      { $set: { isAdmin: false } },
+      { new: true }
+    );
+    res.status(201).json({
+      status: true,
+      message: "Admin added successfully",
+      data: newAdmin,
+    });
+  } catch (error) {
+    res.status(404).json({ message: error });
+    console.log(error);
+  }
+});
 
-//USERS   LIST
+//USERS LIST
 // /api/admin/usersList
 router.get("/usersList/:id", verify, adminAccess, async (req, res) => {
   try {
@@ -154,7 +194,7 @@ router.get("/postsList/:id", verify, adminAccess, async (req, res) => {
   }
 });
 
-//PRODUCTS   LIST
+//PRODUCTS LIST
 // /api/admin/productsList
 router.get("/productsList/:id", verify, adminAccess, async (req, res) => {
   try {
@@ -185,6 +225,48 @@ router.get("/orderedList/:id", verify, adminAccess, async (req, res) => {
     res.status(401).json({ message: error });
   }
 });
+// ADMIN Filter Ordered List By Id
+// /api/admin/orderedList
+router.get("/orderedList/id/:id", verify, adminAccess, async (req, res) => {
+  try {
+    let id = req.header("clientId");
+    let filterOrderedList = await OrderedProducts.find({ user: id });
+    res.status(201).json({
+      status: true,
+      message: "Ordered List filtered by ID  ",
+      data: filterOrderedList,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(401).json({ message: error });
+  }
+});
+
+// ADMIN Filter Ordered List By UserFirstName or UserLastName
+// /api/admin/orderedList
+router.get(
+  "/orderedList/userName/:id",
+  verify,
+  adminAccess,
+  async (req, res) => {
+    try {
+      let firstName = req.header("firstName");
+      let lastName = req.header("lastName");
+      let filterOrderedList = await OrderedProducts.find({
+        userFirstName: firstName,
+        userLastName: lastName,
+      });
+      res.status(201).json({
+        status: true,
+        message: "Ordered List filtered by firstName or lastName ",
+        data: filterOrderedList,
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(401).json({ message: error });
+    }
+  }
+);
 
 // Admin verify status command
 // /api/admin/verifyOrder
@@ -279,17 +361,21 @@ router.put("/updateComment/:id", verify, adminAccess, async (req, res) => {
   }
 });
 
-//Admin DELETE COMMENT
+//ADMIN DELETE COMMENT
 // /api/admin/deleteComment
-router.post("/deleteComment/:id", verify, adminAccess, async (req, res) => {
+router.put("/deleteComment/:id", verify, adminAccess, async (req, res) => {
   try {
-    let { commentId } = req.header("commentId");
-    let deletedComment = await Comment.findByIdAndDelete(commentId, {
-      new: true,
-    });
+    let _id = req.header("postId");
+    let commId = req.header("commentId");
+    var post_id = new ObjectId(_id);
+    var o_comm_id = new ObjectId(commId);
+    let deletedComment = await Post.updateOne(
+      { _id: post_id },
+      { $pull: { comment: { _id: o_comm_id } } }
+    );
     res.status(201).json({
       status: true,
-      message: "comment was updated successfully",
+      message: "comment was deleted successfully",
       data: deletedComment,
     });
   } catch (error) {
