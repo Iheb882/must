@@ -13,6 +13,7 @@ import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import axios from "axios";
+import { useHistory } from "react-router-dom";
 
 function Copyright(props) {
   return (
@@ -34,6 +35,7 @@ function Copyright(props) {
 const theme = createTheme();
 
 const Register = () => {
+  const history = useHistory();
   const [userData, setUserData] = useState({});
   const handelChange = (e) => {
     setUserData({ ...userData, [e.target.name]: e.target.value });
@@ -44,6 +46,7 @@ const Register = () => {
       .post("/api/user/register", userData)
       .then((response) => {
         console.log(response);
+        history.push("/");
       })
       .catch((error) => {
         console.dir(error);
@@ -108,14 +111,14 @@ const Register = () => {
                   autoComplete="new-password"
                 />
               </Grid>
-              <Grid item xs={12}>
+              {/* <Grid item xs={12}>
                 <FormControlLabel
                   control={
                     <Checkbox value="allowExtraEmails" color="primary" />
                   }
                   label="I want to receive inspiration, marketing promotions and updates via email."
                 />
-              </Grid>
+              </Grid> */}
             </Grid>
             <Button
               type="submit"
@@ -127,7 +130,7 @@ const Register = () => {
             </Button>
             <Grid container justifyContent="flex-end">
               <Grid item>
-                <Link href="#" variant="body2">
+                <Link href="/login" variant="body2">
                   Already have an account? Sign in
                 </Link>
               </Grid>
